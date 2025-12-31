@@ -1,0 +1,143 @@
+-- LocalScript
+
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local player = Players.LocalPlayer
+
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "EggGui"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.Parent = player:WaitForChild("PlayerGui")
+
+local MainFrame = Instance.new("Frame")
+MainFrame.Size = UDim2.new(0, 420, 0, 350)
+MainFrame.Position = UDim2.new(0.5, -210, 0.5, -175)
+MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+MainFrame.BorderSizePixel = 0
+MainFrame.Parent = ScreenGui
+
+local TopBar = Instance.new("Frame")
+TopBar.Size = UDim2.new(1, 0, 0, 40)
+TopBar.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+TopBar.BorderSizePixel = 0
+TopBar.Parent = MainFrame
+
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, -50, 1, 0)
+Title.Position = UDim2.new(0, 10, 0, 0)
+Title.Text = "Egg Buyer"
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.TextXAlignment = Enum.TextXAlignment.Left
+Title.BackgroundTransparency = 1
+Title.Parent = TopBar
+
+local MinimizeButton = Instance.new("TextButton")
+MinimizeButton.Size = UDim2.new(0, 40, 0, 30)
+MinimizeButton.Position = UDim2.new(1, -45, 0, 5)
+MinimizeButton.Text = "-"
+MinimizeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+MinimizeButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+MinimizeButton.Parent = TopBar
+
+local ContentFrame = Instance.new("Frame")
+ContentFrame.Size = UDim2.new(1, 0, 1, -40)
+ContentFrame.Position = UDim2.new(0, 0, 0, 40)
+ContentFrame.BackgroundTransparency = 1
+ContentFrame.Parent = MainFrame
+
+-- Auto-buy zmienna
+local autoBuyRunning = false
+
+local function buyEgg(eggName, flag)
+	local success, err = pcall(function()
+		workspace:WaitForChild("__THINGS")
+			:WaitForChild("__REMOTES")
+			:WaitForChild("buy egg")
+			:InvokeServer({
+				{
+					{eggName, flag},
+					{false, false}
+				}
+			})
+	end)
+	if not success then
+		warn("Błąd kupowania egga: "..tostring(err))
+	end
+end
+
+local function createButton(text, yPos, callback)
+	local Button = Instance.new("TextButton")
+	Button.Size = UDim2.new(0, 360, 0, 60)
+	Button.Position = UDim2.new(0.5, -180, 0, yPos)
+	Button.Text = text
+	Button.TextColor3 = Color3.fromRGB(255, 255, 255)
+	Button.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+	Button.Parent = ContentFrame
+
+	Button.MouseButton1Click:Connect(callback)
+end
+
+-- Przyciski
+createButton("Kup Wood Egg", 30, function()
+	buyEgg("Wood Egg", false)
+end)
+
+createButton("Kup Beachball Egg (true)", 110, function()
+	buyEgg("Beachball Egg", true)
+end)
+
+createButton("Start/Stop Auto-Buy Beachball Egg", 190, function()
+	autoBuyRunning = not autoBuyRunning
+end)
+
+-- Minimalizacja
+local minimized = false
+MinimizeButton.MouseButton1Click:Connect(function()
+	minimized = not minimized
+	ContentFrame.Visible = not minimized
+	MainFrame.Size = minimized and UDim2.new(0, 420, 0, 40) or UDim2.new(0, 420, 0, 350)
+	MinimizeButton.Text = minimized and "+" or "-"
+end)
+
+-- Drag & drop
+local dragging = false
+local dragStart
+local startPos
+
+TopBar.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 then
+		dragging = true
+		dragStart = input.Position
+		startPos = MainFrame.Position
+	end
+end)
+
+TopBar.InputEnded:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 then
+		dragging = false
+	end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+	if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+		local delta = input.Position - dragStart
+		MainFrame.Position = UDim2.new(
+			startPos.X.Scale,
+			startPos.X.Offset + delta.X,
+			startPos.Y.Scale,
+			startPos.Y.Offset + delta.Y
+		)
+	end
+end)
+
+-- Pętla auto-buy
+spawn(function()
+	while true do
+		if autoBuyRunning then
+			buyEgg("Beachball Egg", true)
+		end
+		wait(0.1)
+	end
+end)
+
+ScreenGui.Enabled = true
