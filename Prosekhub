@@ -1,143 +1,209 @@
--- LocalScript
-
+-- Usługi
 local Players = game:GetService("Players")
-local UserInputService = game:GetService("UserInputService")
 local player = Players.LocalPlayer
+local PlayerGui = player:WaitForChild("PlayerGui")
+local UserInputService = game:GetService("UserInputService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "EggGui"
-ScreenGui.ResetOnSpawn = false
-ScreenGui.Parent = player:WaitForChild("PlayerGui")
+-- GUI
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "EggOpenerGUI"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = PlayerGui
 
-local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.new(0, 420, 0, 350)
-MainFrame.Position = UDim2.new(0.5, -210, 0.5, -175)
-MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-MainFrame.BorderSizePixel = 0
-MainFrame.Parent = ScreenGui
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 250, 0, 220)
+frame.Position = UDim2.new(0.5, -125, 0.5, -110)
+frame.BackgroundColor3 = Color3.fromRGB(35,35,35)
+frame.Parent = screenGui
 
-local TopBar = Instance.new("Frame")
-TopBar.Size = UDim2.new(1, 0, 0, 40)
-TopBar.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-TopBar.BorderSizePixel = 0
-TopBar.Parent = MainFrame
+Instance.new("UICorner", frame)
 
-local Title = Instance.new("TextLabel")
-Title.Size = UDim2.new(1, -50, 1, 0)
-Title.Position = UDim2.new(0, 10, 0, 0)
-Title.Text = "Egg Buyer"
-Title.TextColor3 = Color3.fromRGB(255, 255, 255)
-Title.TextXAlignment = Enum.TextXAlignment.Left
-Title.BackgroundTransparency = 1
-Title.Parent = TopBar
+-- TITLE BAR
+local titleBar = Instance.new("Frame")
+titleBar.Size = UDim2.new(1,0,0,30)
+titleBar.BackgroundColor3 = Color3.fromRGB(50,50,50)
+titleBar.Parent = frame
+Instance.new("UICorner", titleBar)
 
-local MinimizeButton = Instance.new("TextButton")
-MinimizeButton.Size = UDim2.new(0, 40, 0, 30)
-MinimizeButton.Position = UDim2.new(1, -45, 0, 5)
-MinimizeButton.Text = "-"
-MinimizeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-MinimizeButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-MinimizeButton.Parent = TopBar
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(0.7,0,1,0)
+title.Text = "Egg Opener"
+title.BackgroundTransparency = 1
+title.TextColor3 = Color3.new(1,1,1)
+title.Parent = titleBar
 
-local ContentFrame = Instance.new("Frame")
-ContentFrame.Size = UDim2.new(1, 0, 1, -40)
-ContentFrame.Position = UDim2.new(0, 0, 0, 40)
-ContentFrame.BackgroundTransparency = 1
-ContentFrame.Parent = MainFrame
+local minimize = Instance.new("TextButton")
+minimize.Size = UDim2.new(0.3,0,1,0)
+minimize.Position = UDim2.new(0.7,0,0,0)
+minimize.Text = "-"
+minimize.BackgroundColor3 = Color3.fromRGB(70,70,70)
+minimize.TextColor3 = Color3.new(1,1,1)
+minimize.Parent = titleBar
 
--- Auto-buy zmienna
-local autoBuyRunning = false
+-- PANEL
+local panel = Instance.new("Frame")
+panel.Size = UDim2.new(1,0,1,-30)
+panel.Position = UDim2.new(0,0,0,30)
+panel.BackgroundTransparency = 1
+panel.Parent = frame
 
-local function buyEgg(eggName, flag)
-	local success, err = pcall(function()
-		workspace:WaitForChild("__THINGS")
-			:WaitForChild("__REMOTES")
-			:WaitForChild("buy egg")
-			:InvokeServer({
-				{
-					{eggName, flag},
-					{false, false}
-				}
-			})
-	end)
-	if not success then
-		warn("Błąd kupowania egga: "..tostring(err))
-	end
+-- TOGGLE
+local toggle = Instance.new("TextButton")
+toggle.Size = UDim2.new(1,-20,0,30)
+toggle.Position = UDim2.new(0,10,0,10)
+toggle.Text = "Auto Open: OFF"
+toggle.BackgroundColor3 = Color3.fromRGB(70,70,70)
+toggle.TextColor3 = Color3.new(1,1,1)
+toggle.Parent = panel
+Instance.new("UICorner", toggle)
+
+-- AMOUNT
+local amountBox = Instance.new("TextBox")
+amountBox.Size = UDim2.new(1,-20,0,25)
+amountBox.Position = UDim2.new(0,10,0,50)
+amountBox.Text = "100"
+amountBox.BackgroundColor3 = Color3.fromRGB(60,60,60)
+amountBox.TextColor3 = Color3.new(1,1,1)
+amountBox.Parent = panel
+Instance.new("UICorner", amountBox)
+
+-- SPEED
+local speedBox = Instance.new("TextBox")
+speedBox.Size = UDim2.new(1,-20,0,25)
+speedBox.Position = UDim2.new(0,10,0,85)
+speedBox.Text = "0"
+speedBox.BackgroundColor3 = Color3.fromRGB(60,60,60)
+speedBox.TextColor3 = Color3.new(1,1,1)
+speedBox.Parent = panel
+Instance.new("UICorner", speedBox)
+
+-- EGG NAME
+local eggBox = Instance.new("TextBox")
+eggBox.Size = UDim2.new(1,-20,0,25)
+eggBox.Position = UDim2.new(0,10,0,120)
+eggBox.Text = "Relic Egg"
+eggBox.BackgroundColor3 = Color3.fromRGB(60,60,60)
+eggBox.TextColor3 = Color3.new(1,1,1)
+eggBox.Parent = panel
+Instance.new("UICorner", eggBox)
+
+-- QUICK BUTTONS
+local quickFrame = Instance.new("Frame")
+quickFrame.Size = UDim2.new(1,-20,0,25)
+quickFrame.Position = UDim2.new(0,10,0,155)
+quickFrame.BackgroundTransparency = 1
+quickFrame.Parent = panel
+
+local eggs = {"Relic Egg","Wood Egg","Beachball Egg"}
+
+for i,name in ipairs(eggs) do
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(0,70,1,0)
+    btn.Position = UDim2.new(0,(i-1)*75,0,0)
+    btn.Text = name
+    btn.BackgroundColor3 = Color3.fromRGB(70,70,70)
+    btn.TextColor3 = Color3.new(1,1,1)
+    btn.Parent = quickFrame
+    Instance.new("UICorner", btn)
+
+    btn.MouseButton1Click:Connect(function()
+        eggBox.Text = name
+    end)
 end
 
-local function createButton(text, yPos, callback)
-	local Button = Instance.new("TextButton")
-	Button.Size = UDim2.new(0, 360, 0, 60)
-	Button.Position = UDim2.new(0.5, -180, 0, yPos)
-	Button.Text = text
-	Button.TextColor3 = Color3.fromRGB(255, 255, 255)
-	Button.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-	Button.Parent = ContentFrame
+-- STATUS
+local status = Instance.new("TextLabel")
+status.Size = UDim2.new(1,-20,0,25)
+status.Position = UDim2.new(0,10,0,185)
+status.Text = "0"
+status.BackgroundTransparency = 1
+status.TextColor3 = Color3.new(1,1,1)
+status.Parent = panel
 
-	Button.MouseButton1Click:Connect(callback)
+-- LOGIKA
+local auto = false
+
+toggle.MouseButton1Click:Connect(function()
+    auto = not auto
+    toggle.Text = "Auto Open: "..(auto and "ON" or "OFF")
+end)
+
+-- 🔥 NOWA FUNKCJA (Twoje args)
+local function openEgg(name)
+    local args = {
+        name,
+        true,
+        false,
+        false
+    }
+
+    pcall(function()
+        ReplicatedStorage:WaitForChild("RemoteFunction"):InvokeServer(unpack(args))
+    end)
 end
 
--- Przyciski
-createButton("Kup Wood Egg", 30, function()
-	buyEgg("Wood Egg", false)
+-- AUTO OPEN
+spawn(function()
+    while true do
+        if auto then
+            local amount = tonumber(amountBox.Text) or 100
+            local delay = tonumber(speedBox.Text) or 0
+            local opened = 0
+
+            for i=1,amount do
+                if not auto then break end
+                spawn(function()
+                    openEgg(eggBox.Text)
+                end)
+                opened += 1
+                status.Text = "Opened: "..opened
+                task.wait(delay)
+            end
+        else
+            task.wait(0.1)
+        end
+    end
 end)
 
-createButton("Kup Beachball Egg (true)", 110, function()
-	buyEgg("Beachball Egg", true)
-end)
-
-createButton("Start/Stop Auto-Buy Beachball Egg", 190, function()
-	autoBuyRunning = not autoBuyRunning
-end)
-
--- Minimalizacja
+-- MINIMIZE
 local minimized = false
-MinimizeButton.MouseButton1Click:Connect(function()
-	minimized = not minimized
-	ContentFrame.Visible = not minimized
-	MainFrame.Size = minimized and UDim2.new(0, 420, 0, 40) or UDim2.new(0, 420, 0, 350)
-	MinimizeButton.Text = minimized and "+" or "-"
+minimize.MouseButton1Click:Connect(function()
+    minimized = not minimized
+    panel.Visible = not minimized
+    frame.Size = minimized and UDim2.new(0,150,0,30) or UDim2.new(0,250,0,220)
 end)
 
--- Drag & drop
-local dragging = false
-local dragStart
-local startPos
+-- DRAG (PC + MOBILE)
+local dragging, dragStart, startPos
 
-TopBar.InputBegan:Connect(function(input)
-	if input.UserInputType == Enum.UserInputType.MouseButton1 then
-		dragging = true
-		dragStart = input.Position
-		startPos = MainFrame.Position
-	end
+frame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        startPos = frame.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
 end)
 
-TopBar.InputEnded:Connect(function(input)
-	if input.UserInputType == Enum.UserInputType.MouseButton1 then
-		dragging = false
-	end
+frame.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+        dragInput = input
+    end
 end)
 
 UserInputService.InputChanged:Connect(function(input)
-	if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-		local delta = input.Position - dragStart
-		MainFrame.Position = UDim2.new(
-			startPos.X.Scale,
-			startPos.X.Offset + delta.X,
-			startPos.Y.Scale,
-			startPos.Y.Offset + delta.Y
-		)
-	end
+    if dragging then
+        local delta = input.Position - dragStart
+        frame.Position = UDim2.new(
+            startPos.X.Scale,
+            startPos.X.Offset + delta.X,
+            startPos.Y.Scale,
+            startPos.Y.Offset + delta.Y
+        )
+    end
 end)
-
--- Pętla auto-buy
-spawn(function()
-	while true do
-		if autoBuyRunning then
-			buyEgg("Beachball Egg", true)
-		end
-		wait(0.1)
-	end
-end)
-
-ScreenGui.Enabled = true
